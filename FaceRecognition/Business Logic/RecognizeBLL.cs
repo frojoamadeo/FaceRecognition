@@ -48,7 +48,7 @@ namespace FaceRecognition.Business_Logic
             Image<Gray, byte> grayFrame = toGrayEqualizeFrame(inputImage);
             Int32[] outLabels = null;
             FaceRecognizer faceRecognition;
-            Emgu.CV.f
+            
             switch (faceRecognizerMethode.ToString())
             {
                 case "EigenFaceRecognizerMethode": faceRecognition = new EigenFaceRecognizer(numComponentsEigen, thresholdEigen); //try catch aca
