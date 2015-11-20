@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="FaceRecognitionDBModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="DistanceResult">
+          <Key>
+            <PropertyRef Name="DistanceResultId" />
+          </Key>
+          <Property Name="DistanceResultId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="EmployeId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Distance" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Employe">
+          <Key>
+            <PropertyRef Name="EmployeId" />
+          </Key>
+          <Property Name="EmployeId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="MiddleName" Type="varchar" MaxLength="50" />
+          <Property Name="LastName" Type="varchar" MaxLength="50" Nullable="false" />
+        </EntityType>
+        <Association Name="FK_DistanceResult_Employe">
+          <End Role="Employe" Type="Self.Employe" Multiplicity="1" />
+          <End Role="DistanceResult" Type="Self.DistanceResult" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Employe">
+              <PropertyRef Name="EmployeId" />
+            </Principal>
+            <Dependent Role="DistanceResult">
+              <PropertyRef Name="EmployeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="FaceRecognitionDBModelStoreContainer">
+          <EntitySet Name="DistanceResult" EntityType="Self.DistanceResult" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Employe" EntityType="Self.Employe" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_DistanceResult_Employe" Association="Self.FK_DistanceResult_Employe">
+            <End Role="Employe" EntitySet="Employe" />
+            <End Role="DistanceResult" EntitySet="DistanceResult" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="FaceRecognitionDBModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="DistanceResult">
+          <Key>
+            <PropertyRef Name="DistanceResultId" />
+          </Key>
+          <Property Name="DistanceResultId" Type="Guid" Nullable="false" />
+          <Property Name="EmployeId" Type="Guid" Nullable="false" />
+          <Property Name="Distance" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Employe" Relationship="Self.FK_DistanceResult_Employe" FromRole="DistanceResult" ToRole="Employe" />
+        </EntityType>
+        <EntityType Name="Employe">
+          <Key>
+            <PropertyRef Name="EmployeId" />
+          </Key>
+          <Property Name="EmployeId" Type="Guid" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="MiddleName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="LastName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="DistanceResults" Relationship="Self.FK_DistanceResult_Employe" FromRole="Employe" ToRole="DistanceResult" />
+        </EntityType>
+        <Association Name="FK_DistanceResult_Employe">
+          <End Role="Employe" Type="Self.Employe" Multiplicity="1" />
+          <End Role="DistanceResult" Type="Self.DistanceResult" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Employe">
+              <PropertyRef Name="EmployeId" />
+            </Principal>
+            <Dependent Role="DistanceResult">
+              <PropertyRef Name="EmployeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="FaceRecognitionDBEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="DistanceResults" EntityType="Self.DistanceResult" />
+          <EntitySet Name="Employes" EntityType="Self.Employe" />
+          <AssociationSet Name="FK_DistanceResult_Employe" Association="Self.FK_DistanceResult_Employe">
+            <End Role="Employe" EntitySet="Employes" />
+            <End Role="DistanceResult" EntitySet="DistanceResults" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="FaceRecognitionDBModelStoreContainer" CdmEntityContainer="FaceRecognitionDBEntities">
+          <EntitySetMapping Name="DistanceResults">
+            <EntityTypeMapping TypeName="FaceRecognitionDBModel.DistanceResult">
+              <MappingFragment StoreEntitySet="DistanceResult">
+                <ScalarProperty Name="DistanceResultId" ColumnName="DistanceResultId" />
+                <ScalarProperty Name="EmployeId" ColumnName="EmployeId" />
+                <ScalarProperty Name="Distance" ColumnName="Distance" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Employes">
+            <EntityTypeMapping TypeName="FaceRecognitionDBModel.Employe">
+              <MappingFragment StoreEntitySet="Employe">
+                <ScalarProperty Name="EmployeId" ColumnName="EmployeId" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="MiddleName" ColumnName="MiddleName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
