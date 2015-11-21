@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using System.Drawing.Imaging;
+using Emgu.CV.Face;
 
 namespace FaceRecognition.Business_Logic
 {
@@ -41,7 +43,7 @@ namespace FaceRecognition.Business_Logic
         private Double[] distances;
 
 
-        public Int32[] recognizeFaces(Image<Bgr, Byte> inputImage, IImage[] imagesDB, int[] labels, string pathXMLHaarcascade, FaceRecognizerMethode faceRecognizerMethode)
+        public Int32[] recognizeFaces(Image<Bgr, Byte> inputImage, Image<Bgr, Byte>[] imagesDB, int[] labels, string pathXMLHaarcascade, FaceRecognizerMethode faceRecognizerMethode)
         {
             Bitmap[] extractedFace;
             Rectangle[] rectangleFace = detection(inputImage, pathXMLHaarcascade);
@@ -152,7 +154,8 @@ namespace FaceRecognition.Business_Logic
             }
         }
 
-        public void estimateParametersEigen(IImage[] imagesInput, IImage[] imagesDB, int[] labels)
+        //public void estimateParametersEigen(IImage[] imagesInput, IImage[] imagesDB, int[] labels)
+        public void estimateParametersEigen(Image<Bgr, Byte>[] imagesInput, Image<Bgr, Byte>[] imagesDB, int[] labels)
         {
             int tmpNumComponentsEigen;
             double tmpThresholdEigen;
@@ -189,7 +192,8 @@ namespace FaceRecognition.Business_Logic
             thresholdEigen = EficientThresholdEigen;
         }
 
-        public void estimateParametersFisher(IImage[] imagesInput, IImage[] imagesDB, int[] labels)
+        //public void estimateParametersFisher(IImage[] imagesInput, IImage[] imagesDB, int[] labels)
+        public void estimateParametersFisher(Image<Bgr, Byte>[] imagesInput, Image<Bgr, Byte>[] imagesDB, int[] labels)
         {
             int tmpNumComponentsFisher;
             double tmpThresholdFisher;
@@ -203,7 +207,7 @@ namespace FaceRecognition.Business_Logic
             {
                 for (tmpNumComponentsFisher = 0; tmpNumComponentsFisher < 100; tmpNumComponentsFisher++)
                 {
-                    foreach (IImage input in imagesInput)
+                    foreach (Image<Bgr, Byte> input in imagesInput)
                     {
                         faceRecognition = new EigenFaceRecognizer(tmpNumComponentsFisher, tmpThresholdFisher);
                         faceRecognition.Train(imagesDB, labels);
@@ -229,7 +233,8 @@ namespace FaceRecognition.Business_Logic
         private Image<Gray, byte> toGrayEqualizeFrame(Image<Bgr, Byte> inputImage)
         {
             Image<Gray, byte> grayFrame = inputImage.Convert<Gray, byte>();
-            CvInvoke.cvEqualizeHist(grayFrame, grayFrame);
+            //CvInvoke.cvEqualizeHist(grayFrame, grayFrame); ver
+            
             return grayFrame;
         }
 
