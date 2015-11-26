@@ -9,6 +9,8 @@ using Emgu.CV;
 using Emgu.CV.Structure;
 using System.Drawing.Imaging;
 using Emgu.CV.Face;
+using FaceRecognition.Models;
+using FaceRecognition.UnitOfWork;
 
 namespace FaceRecognition.Business_Logic
 {
@@ -42,13 +44,37 @@ namespace FaceRecognition.Business_Logic
 
         private Double[] distances;
 
+        string pathXMLHaarcascade;
 
-        public Int32[] recognizeFaces(Image<Bgr, Byte> inputImage, Image<Bgr, Byte>[] imagesDB, int[] labels, string pathXMLHaarcascade, FaceRecognizerMethode faceRecognizerMethode)
+        private Image<Bgr, Byte>[] imagesDB; //Tengo que cargar las imagenes y los labels
+        private int[] labels;
+
+        GenericUnitOfWork unitOfWork;
+
+        public RecognizeBLL()
         {
+
+            unitOfWork = new GenericUnitOfWork();
+            var _em = unitOfWork.GetRepoInstance<Employee>().GetAllRecords();
+
+            //Tengo que cargar las imagenes y los labels aca
+            this.pathXMLHaarcascade = @"haarcascade_frontalface_default.XML";
+        }
+
+
+        //el resturn lo cambie de Int32 a 64
+        public Int64[] recognizeFaces(Image<Bgr, Byte> inputImage, string pathXMLHaarcascade, FaceRecognizerMethode faceRecognizerMethode)
+        {
+
+            if(pathXMLHaarcascade!="")
+            {
+                this.pathXMLHaarcascade = pathXMLHaarcascade;
+            }
+
             Bitmap[] extractedFace;
             Rectangle[] rectangleFace = detection(inputImage, pathXMLHaarcascade);
             Image<Gray, byte> grayFrame = toGrayEqualizeFrame(inputImage);
-            Int32[] outLabels = null;
+            Int64[] outLabels = null; //Lo cambie de 32 a 64
             FaceRecognizer faceRecognition;
             
             switch (faceRecognizerMethode.ToString())
@@ -66,7 +92,7 @@ namespace FaceRecognition.Business_Logic
             {
                 faceRecognition.Train(imagesDB, labels);
                 extractedFace = new Bitmap[rectangleFace.Length];
-                outLabels = new Int32[labels.Length];
+                outLabels = new Int64[labels.Length];
                 distances = new Double[rectangleFace.Length];
 
                 Parallel.For(0, rectangleFace.Length, i =>

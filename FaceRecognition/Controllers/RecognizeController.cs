@@ -5,12 +5,17 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using FaceRecognition.Business_Logic;
 
 namespace FaceRecognition.Controllers
 {
     public class RecognizeController : ApiController
     {
         // GET api/<controller>
+
+        RecognizeBLL recognize = new RecognizeBLL();
+
+
         public IEnumerable<string> Get()
         {
             return new string[] { "value1", "value2" };
@@ -29,7 +34,7 @@ namespace FaceRecognition.Controllers
 
         public string Post([FromBody]Image img)
         {
-            img.Visible = true;
+            //recognize.recognizeFaces(img,"", "",RecognizeBLL.FaceRecognizerMethode.EigenFaceRecognizerMethode);
             
             return "ok";
         }

@@ -28,7 +28,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -138,49 +138,18 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Models\DistanceResult.cs">
-      <DependentUpon>FaceRecognitionDB.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\Employe.cs">
-      <DependentUpon>FaceRecognitionDB.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FaceRecognitionDB.Context.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>FaceRecognitionDB.Context.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FaceRecognitionDB.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>FaceRecognitionDB.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\FaceRecognitionDB.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>FaceRecognitionDB.edmx</DependentUpon>
-    </Compile>
+    <Compile Include="Models\DistanceResult.cs" />
+    <Compile Include="Models\Employee.cs" />
+    <Compile Include="GenericRepository\GenericRepository.cs" />
+    <Compile Include="UnitOfWork\GenericUnitOfWork.cs" />
+    <Compile Include="GenericRepository\IGenericRepository.cs" />
+    <Compile Include="UnitOfWork\IGenericUnitOfWork.cs" />
+    <Compile Include="Models\RepositoryEntities.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\web.config" />
     <Content Include="packages.config" />
-    <EntityDeploy Include="Models\FaceRecognitionDB.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>FaceRecognitionDB.Designer.cs</LastGenOutput>
-    </EntityDeploy>
-    <Content Include="Models\FaceRecognitionDB.Context.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>FaceRecognitionDB.edmx</DependentUpon>
-      <LastGenOutput>FaceRecognitionDB.Context.cs</LastGenOutput>
-    </Content>
-    <Content Include="Models\FaceRecognitionDB.edmx.diagram">
-      <DependentUpon>FaceRecognitionDB.edmx</DependentUpon>
-    </Content>
-    <Content Include="Models\FaceRecognitionDB.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>FaceRecognitionDB.edmx</DependentUpon>
-      <LastGenOutput>FaceRecognitionDB.cs</LastGenOutput>
-    </Content>
     <Content Include="Scripts\jquery-1.10.2.min.map" />
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
