@@ -11,6 +11,7 @@ using System.Drawing.Imaging;
 using Emgu.CV.Face;
 using FaceRecognition.Models;
 using FaceRecognition.UnitOfWork;
+using FaceRecognition.GenericRepository;
 
 namespace FaceRecognition.Business_Logic
 {
@@ -53,10 +54,16 @@ namespace FaceRecognition.Business_Logic
 
         public RecognizeBLL()
         {
-
+            //Employee em =  new Employee { employeeId = Guid.NewGuid(), name="Juan", lastName="Red" };
             unitOfWork = new GenericUnitOfWork();
+            unitOfWork.SaveChanges();
+            GenericRepository<Employee> employeeRepo = unitOfWork.GetRepoInstance<Employee>();
+            int countLabels = unitOfWork.GetRepoInstance<Employee>().GetAllRecords().Count(); //Con esto no tengo que procesar todas las fotos, solo tengo que hacer un Load abajo y esta es la cantidad de labeles
+            //employeeRepo.Add(em);
+            //unitOfWork.GetRepoInstance<Employee>().Add(new Employee { employeeId=new Guid(),name="Juan", lastName="Red" });
+            //unitOfWork.SaveChanges();
             var _em = unitOfWork.GetRepoInstance<Employee>().GetAllRecords();
-
+            unitOfWork.SaveChanges();
             //Tengo que cargar las imagenes y los labels aca
             this.pathXMLHaarcascade = @"haarcascade_frontalface_default.XML";
         }
@@ -91,6 +98,8 @@ namespace FaceRecognition.Business_Logic
             if (rectangleFace.Length > 0)
             {
                 faceRecognition.Train(imagesDB, labels);
+                //faceRecognition.Save(FileName);Puedo guardar esto y depsues volver a cargarlo con Load. Deberia gurdarlo cada vez que se agrega una imagen a la DB
+                
                 extractedFace = new Bitmap[rectangleFace.Length];
                 outLabels = new Int64[labels.Length];
                 distances = new Double[rectangleFace.Length];

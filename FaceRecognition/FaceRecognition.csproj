@@ -119,6 +119,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
+    <Content Include="ClassDiagram1.cd" />
     <None Include="Scripts\jquery-1.10.2-vsdoc.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
@@ -130,14 +131,23 @@
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="App_Start\RouteConfig.cs" />
-    <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Business Logic\App_Start\RouteConfig.cs" />
+    <Compile Include="Business Logic\App_Start\WebApiConfig.cs" />
     <Compile Include="Business Logic\RecognizeBLL.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\RecognizeController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201511262027389_InitialCreate.cs" />
+    <Compile Include="Migrations\201511262027389_InitialCreate.Designer.cs">
+      <DependentUpon>201511262027389_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201511262119236_InitialCreate1.cs" />
+    <Compile Include="Migrations\201511262119236_InitialCreate1.Designer.cs">
+      <DependentUpon>201511262119236_InitialCreate1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\DistanceResult.cs" />
     <Compile Include="Models\Employee.cs" />
     <Compile Include="GenericRepository\GenericRepository.cs" />
@@ -167,6 +177,14 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201511262027389_InitialCreate.resx">
+      <DependentUpon>201511262027389_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201511262119236_InitialCreate1.resx">
+      <DependentUpon>201511262119236_InitialCreate1.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
