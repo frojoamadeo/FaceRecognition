@@ -28,7 +28,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -119,7 +119,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
-    <Content Include="ClassDiagram1.cd" />
+    <Content Include="CodeTemplates\ReverseEngineerCodeFirst\Context.tt" />
+    <Content Include="CodeTemplates\ReverseEngineerCodeFirst\Entity.tt" />
+    <Content Include="CodeTemplates\ReverseEngineerCodeFirst\Mapping.tt" />
     <None Include="Scripts\jquery-1.10.2-vsdoc.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
@@ -150,11 +152,14 @@
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\DistanceResult.cs" />
     <Compile Include="Models\Employee.cs" />
-    <Compile Include="GenericRepository\GenericRepository.cs" />
-    <Compile Include="UnitOfWork\GenericUnitOfWork.cs" />
-    <Compile Include="GenericRepository\IGenericRepository.cs" />
-    <Compile Include="UnitOfWork\IGenericUnitOfWork.cs" />
-    <Compile Include="Models\RepositoryEntities.cs" />
+    <Compile Include="DAL\GenericRepository.cs" />
+    <Compile Include="DAL\GenericUnitOfWork.cs" />
+    <Compile Include="DAL\IGenericRepository.cs" />
+    <Compile Include="DAL\IGenericUnitOfWork.cs" />
+    <Compile Include="DAL\RepositoryEntities.cs" />
+    <Compile Include="Models\FaceRecognitionDBContext.cs" />
+    <Compile Include="Models\Mapping\DistanceResultMap.cs" />
+    <Compile Include="Models\Mapping\EmployeeMap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

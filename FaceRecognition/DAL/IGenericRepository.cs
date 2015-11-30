@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FaceRecognition.GenericRepository
+namespace FaceRecognition.DAL
 {
     interface IGenericRepository<TEntity>
     {

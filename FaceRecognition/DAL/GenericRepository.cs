@@ -4,9 +4,8 @@ using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Web;
-using FaceRecognition.Models;
 
-namespace FaceRecognition.GenericRepository
+namespace FaceRecognition.DAL
 {
     public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class
     {

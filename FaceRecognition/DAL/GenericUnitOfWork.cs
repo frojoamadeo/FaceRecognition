@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Data.Entity;
-using FaceRecognition.Models;
-using FaceRecognition.GenericRepository;
 
-namespace FaceRecognition.UnitOfWork
+namespace FaceRecognition.DAL
 {
     public class GenericUnitOfWork : IGenericUnitOfWork, System.IDisposable
     {

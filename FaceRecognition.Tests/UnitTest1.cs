@@ -5,7 +5,7 @@ using FaceRecognition.Controllers;
 using System.Drawing;
 using System.Web.UI.WebControls;
 using System.Drawing;
-
+using System.Drawing.Imaging;
 namespace FaceRecognition.Tests
 {
     [TestClass]
@@ -23,9 +23,9 @@ namespace FaceRecognition.Tests
         [TestMethod]
         public void TestPostImage()
         {
-
-            Image img1 = new Image();
-            img1.ImageUrl = @"C:\Users\felipe.rojo.amadeo\Documents\Visual Studio 2013\Projects\FaceRecognition\FaceRecognition\emgucv.jpg";
+            Bitmap img1 = new Bitmap(@"C:\Users\felipe.rojo.amadeo\Documents\Visual Studio 2013\Projects\FaceRecognition\FaceRecognition\emgucv.jpg");
+            
+            
             
             //controller.Request = new HttpRequestMessage();
             //controller.Configuration = new HttpConfiguration();

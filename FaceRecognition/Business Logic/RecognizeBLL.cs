@@ -10,8 +10,7 @@ using Emgu.CV.Structure;
 using System.Drawing.Imaging;
 using Emgu.CV.Face;
 using FaceRecognition.Models;
-using FaceRecognition.UnitOfWork;
-using FaceRecognition.GenericRepository;
+using FaceRecognition.DAL;
 
 namespace FaceRecognition.Business_Logic
 {
@@ -46,26 +45,131 @@ namespace FaceRecognition.Business_Logic
         private Double[] distances;
 
         string pathXMLHaarcascade;
+        string pathImages;
 
         private Image<Bgr, Byte>[] imagesDB; //Tengo que cargar las imagenes y los labels
         private int[] labels;
+        private int[] employeeId;
+
 
         GenericUnitOfWork unitOfWork;
 
         public RecognizeBLL()
         {
-            //Employee em =  new Employee { employeeId = Guid.NewGuid(), name="Juan", lastName="Red" };
+            
             unitOfWork = new GenericUnitOfWork();
             unitOfWork.SaveChanges();
+
             GenericRepository<Employee> employeeRepo = unitOfWork.GetRepoInstance<Employee>();
-            int countLabels = unitOfWork.GetRepoInstance<Employee>().GetAllRecords().Count(); //Con esto no tengo que procesar todas las fotos, solo tengo que hacer un Load abajo y esta es la cantidad de labeles
-            //employeeRepo.Add(em);
-            //unitOfWork.GetRepoInstance<Employee>().Add(new Employee { employeeId=new Guid(),name="Juan", lastName="Red" });
+            //employeeRepo.Delete(new Employee { employeeId = 1 });
+            //saveEmployee("Juan", "Ignacio", "Fer", "juanigna");
+
+            //Add Employee
+            //Employee emplyee = new Employee { name = "Nico", lastName = "Fri" };
+            //GenericRepository<Employee> employeeRepo = unitOfWork.GetRepoInstance<Employee>();
+            //employeeRepo.Add(emplyee);
+            
             //unitOfWork.SaveChanges();
-            var _em = unitOfWork.GetRepoInstance<Employee>().GetAllRecords();
+        
+            //Add DistanceResult
+            //GenericRepository<DistanceResult> distanceResultRepo = unitOfWork.GetRepoInstance<DistanceResult>();
+            //Guid guid = Guid.NewGuid();
+            //string path =  "asd" + guid.ToString();
+            //DistanceResult dis = new DistanceResult {employeeId = 1, photoPath = path };
+            //unitOfWork.GetRepoInstance<DistanceResult>().Add(dis);
+            //unitOfWork.SaveChanges();
+
+            //Count the records
+            //int countLabels = unitOfWork.GetRepoInstance<Employee>().GetAllRecords().Count(); //Con esto no tengo que procesar todas las fotos, solo tengo que hacer un Load abajo y esta es la cantidad de labeles
+            
+            
+            
+            //var _em = unitOfWork.GetRepoInstance<DistanceResult>().GetAllRecords();
+            //unitOfWork.SaveChanges();
+            ////Tengo que cargar las imagenes y los labels aca
+            this.pathXMLHaarcascade = @"C:\Users\felipe.rojo.amadeo\Documents\Visual Studio 2013\Projects\FaceRecognition\FaceRecognition\HaarCascade\haarcascade_frontalface_default.XML";
+            this.pathImages = @"C:\Users\felipe.rojo.amadeo\Documents\Visual Studio 2013\Projects\FaceRecognition\FaceRecognition\Images";
+        }
+
+        public void saveEmployee(Image newImage, string name, string middleName, string lastName, string email)
+        {
+            unitOfWork = new GenericUnitOfWork();
+            //Add Employee
+            Employee employee = new Employee { name = name, middleName = middleName, lastName = lastName, email = email};
+            GenericRepository<Employee> employeeRepo = unitOfWork.GetRepoInstance<Employee>();
+
+            
+            employeeRepo.Add(employee);
+            int i = employee.employeeId;
+
             unitOfWork.SaveChanges();
-            //Tengo que cargar las imagenes y los labels aca
-            this.pathXMLHaarcascade = @"haarcascade_frontalface_default.XML";
+
+
+            var em = unitOfWork.GetRepoInstance<Employee>().GetAllRecords();
+            foreach(var emp in em)
+            {
+                if (emp.email == email)
+                {
+                    //Hay que guardar la imagen con el nombre de la Guid
+                    GenericRepository<DistanceResult> distanceResultRepo = unitOfWork.GetRepoInstance<DistanceResult>();
+                    Guid guid = Guid.NewGuid();
+                    string path = "FaceRecognitionImages"  + guid.ToString();
+
+
+                    //Image<Gray, byte> inputImage = newImage.
+
+
+                    var inputImage = new Image<Bgr, Byte>(new Bitmap(newImage));
+
+                    Rectangle[] rectangleFace = detection(inputImage, pathXMLHaarcascade);
+                    if (rectangleFace.Length == 1)
+                    {
+                        Image<Gray, byte> grayFrame = toGrayEqualizeFrame(inputImage);
+                        Bitmap extractedFace;
+                        extractedFace = formatRectangleFaces(grayFrame.ToBitmap(), rectangleFace[0]);
+
+                        this.pathImages = pathImages + @"\" + guid.ToString();
+                        //extractedFace.Save(guid.ToString(), ImageFormat.Jpeg);
+                        extractedFace.Save(pathImages, ImageFormat.Jpeg);
+
+                        Image<Gray, byte> faceEMGUCV = new Image<Gray, byte>(extractedFace);
+
+                    }
+
+
+
+                    DistanceResult dis = new DistanceResult { employeeId = emp.employeeId, photoPath = path };
+                    unitOfWork.GetRepoInstance<DistanceResult>().Add(dis);
+                    unitOfWork.SaveChanges();
+                    break; //ver esto
+                }
+
+                //Hay que traer todas las imagenes
+                //Aca hay que actualizar el archivo de facerecognition.
+            }
+
+            var distanceR = unitOfWork.GetRepoInstance<DistanceResult>().GetAllRecords();
+            int countPhotos = distanceR.Count();
+            
+            imagesDB = new Image<Bgr, Byte>[countPhotos]; 
+            labels = new int[countPhotos];
+            employeeId = new int[countPhotos]; //Aca tengo que crear un dieccionario para que por id me de el nombe y apellido de la persona. Lo tengo q cambiar en la variable de arriba
+
+            foreach(var dis in distanceR)
+            {
+                //Tengo que cargar las imagenes en    
+                //Cargo las labels
+                //Hago eltrain face 
+                //Guardo el archivo
+            }
+            
+        }
+
+
+        public int calculateLabel()
+        {
+
+            return 1;
         }
 
 
