@@ -16,7 +16,7 @@ namespace FaceRecognition.Models.Mapping
             this.Property(t => t.distanceResultId).HasColumnName("distanceResultId");
             this.Property(t => t.employeeId).HasColumnName("employeeId");
             //this.Property(t => t.label).HasColumnName("label");
-            this.Property(t => t.photoPath).HasColumnName("photoPath");
+            this.Property(t => t.photoName).HasColumnName("photoPath");
 
             // Relationships
             this.HasRequired(t => t.Employee)

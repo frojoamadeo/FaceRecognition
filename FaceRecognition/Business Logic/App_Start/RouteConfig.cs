@@ -20,6 +20,13 @@ namespace FaceRecognition
                 defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
                 //constraints: new { key = new GuidRouteConstraint() } //Agregado
             );
+
+            //routes.MapRoute(
+            //    name: "Default2",
+            //    url: "{controller}/{saveImage}/{id}",
+            //    defaults: new { action = "saveImage", id = UrlParameter.Optional }
+            //    //constraints: new { key = new GuidRouteConstraint() } //Agregado
+            //);
         }
     }
 }
