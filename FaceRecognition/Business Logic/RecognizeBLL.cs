@@ -11,6 +11,7 @@ using System.Drawing.Imaging;
 using Emgu.CV.Face;
 using FaceRecognition.Models;
 using FaceRecognition.DAL;
+using System.Diagnostics;
 
 namespace FaceRecognition.Business_Logic
 {
@@ -42,170 +43,111 @@ namespace FaceRecognition.Business_Logic
         private Size minSize = new Size(25, 25);
         private Size maxSize = new Size(400, 400);
 
+        //I think this not should be global
         private Double[] distances;
-
-        string pathXMLHaarcascade;
-        string pathImages;
-
-        private Image<Bgr, Byte>[] imagesDB; //Tengo que cargar las imagenes y los labels
+        private Image<Bgr, Byte>[] imagesDB;
         private int[] labels;
+
+        private string pathXMLHaarcascade;
+        private string pathImg;
+        private string pathFaceRecognition;
         
-
-
         GenericUnitOfWork unitOfWork;
+
+        private string imagesFolder = "Images";
+        private string HaarCascadeFolder = "HaarCascade";
+        private string HaarCascadeFile = "haarcascade_frontalface_default.XML";
 
         public RecognizeBLL()
         {
             
             unitOfWork = new GenericUnitOfWork();
             unitOfWork.SaveChanges();
-
-            GenericRepository<Employee> employeeRepo = unitOfWork.GetRepoInstance<Employee>();
-            //employeeRepo.Delete(new Employee { employeeId = 1 });
-            //saveEmployee("Juan", "Ignacio", "Fer", "juanigna");
-
-            //Add Employee
-            //Employee emplyee = new Employee { name = "Nico", lastName = "Fri" };
-            //GenericRepository<Employee> employeeRepo = unitOfWork.GetRepoInstance<Employee>();
-            //employeeRepo.Add(emplyee);
-            
-            //unitOfWork.SaveChanges();
+          
+            pathFaceRecognition = HttpRuntime.AppDomainAppPath;
+            pathImg = pathFaceRecognition + @"\" + imagesFolder;
+            pathXMLHaarcascade = pathFaceRecognition + @"\" + HaarCascadeFolder + @"\" + HaarCascadeFile;            
         
-            //Add DistanceResult
-            //GenericRepository<DistanceResult> distanceResultRepo = unitOfWork.GetRepoInstance<DistanceResult>();
-            //Guid guid = Guid.NewGuid();
-            //string path =  "asd" + guid.ToString();
-            //DistanceResult dis = new DistanceResult {employeeId = 1, photoPath = path };
-            //unitOfWork.GetRepoInstance<DistanceResult>().Add(dis);
-            //unitOfWork.SaveChanges();
-
-            //Count the records
-            //int countLabels = unitOfWork.GetRepoInstance<Employee>().GetAllRecords().Count(); //Con esto no tengo que procesar todas las fotos, solo tengo que hacer un Load abajo y esta es la cantidad de labeles
-            
-            
-            
-            //var _em = unitOfWork.GetRepoInstance<DistanceResult>().GetAllRecords();
-            //unitOfWork.SaveChanges();
-            ////Tengo que cargar las imagenes y los labels aca
-            this.pathXMLHaarcascade = @"C:\Users\felipe.rojo.amadeo\Documents\Visual Studio 2013\Projects\FaceRecognition\FaceRecognition\HaarCascade\haarcascade_frontalface_default.XML";
-            this.pathImages = @"C:\Users\felipe.rojo.amadeo\Documents\Visual Studio 2013\Projects\FaceRecognition\FaceRecognition\Images";
         }
 
-        public void saveEmployee(Image newImage, string name, string middleName, string lastName, string email)
+        public string saveEmployee(Image newImage, string name, string middleName, string lastName, string email)
         {
             unitOfWork = new GenericUnitOfWork();
-            //Add Employee
-            Employee employee = new Employee { name = name, middleName = middleName, lastName = lastName, email = email};
             GenericRepository<Employee> employeeRepo = unitOfWork.GetRepoInstance<Employee>();
 
-            
-            employeeRepo.Add(employee);
-            //int i = employee.employeeId;
-
-            unitOfWork.SaveChanges();
-
-
-            var em = unitOfWork.GetRepoInstance<Employee>().GetAllRecords();
-            //Este for hay que sacarlo, emplyee.emplyeeId me da el ID
-            foreach(var emp in em)
+            Employee employee = null;
+            try
             {
-                if (emp.email == email)
-                {
-                    //Hay que guardar la imagen con el nombre de la Guid
-                    GenericRepository<DistanceResult> distanceResultRepo = unitOfWork.GetRepoInstance<DistanceResult>();
-                    Guid guid = Guid.NewGuid();
-                    string path = "FaceRecognitionImages"  + guid.ToString();
-
-
-                    //Image<Gray, byte> inputImage = newImage.
-
-
-                    var inputImage = new Image<Bgr, Byte>(new Bitmap(newImage));
-
-                    Rectangle[] rectangleFace = detection(inputImage, pathXMLHaarcascade);
-                    if (rectangleFace.Length == 1)
-                    {
-                        Image<Gray, byte> grayFrame = toGrayEqualizeFrame(inputImage);
-                        Bitmap extractedFace;
-                        extractedFace = formatRectangleFaces(grayFrame.ToBitmap(), rectangleFace[0]);
-
-                        
-                        //extractedFace.Save(guid.ToString(), ImageFormat.Jpeg);
-                        extractedFace.Save(pathImages + @"\" + guid.ToString(), ImageFormat.Jpeg);
-
-
-                        //Aca tengo que calcular la distancia
-                        Image<Gray, byte> faceEMGUCV = new Image<Gray, byte>(extractedFace);
-
-                        FaceRecognizer faceRecognition = new EigenFaceRecognizer(numComponentsEigen, thresholdEigen);
-
-
-
-
-
-                        double distance = 2;
-
-                        //Guardar en bd
-                        DistanceResult dist = new DistanceResult();
-                        dist.algorithm = RecognizeBLL.FaceRecognizerMethode.EigenFaceRecognizerMethode.ToString();
-                        dist.employeeId = employee.employeeId;
-                        dist.photoName = guid.ToString(); 
-                        
-                        dist.distance = distance;
-                        distanceResultRepo.Add(dist);
-
-                        unitOfWork.SaveChanges();
-
-                        
-
-                        int lengthArrays = distanceResultRepo.GetAllRecords().Count();
-                        imagesDB = new Image<Bgr, Byte>[lengthArrays];
-                        labels = new int[lengthArrays];
-                        int i = 0;
-                        foreach (DistanceResult di in distanceResultRepo.GetAllRecords())
-                        {
-                            imagesDB[i] = new Image<Bgr, Byte>(pathImages + @"\" + di.photoName);
-                            labels[i] = di.distanceResultId;
-                            i++;
-                        }
-
-                        faceRecognition.Train(imagesDB,labels);
-                        faceRecognition.Save(pathImages + @"\" + "TrainingSet");
-
-                        //FaceRecognizer.PredictionResult ER = faceRecognition.Predict((IImage)faceEMGUCV);
-                        //dist = distanceResultRepo.GetFirstOrDefault(ER.Label);
-                        //employee = employeeRepo.GetFirstOrDefault(dist.employeeId);
-
-                    }
-
-
-
-                    break; //ver esto
-                }
-
-                //Hay que traer todas las imagenes
-                //Aca hay que actualizar el archivo de facerecognition.
+                
+                employee = (employeeRepo.GetAllRecords().Where<Employee>(e => e.email == email)).First<Employee>();
+                return "Ususario Existente";
+            }
+            catch
+            {
+                Debug.WriteLine("Nuevo usuario");
             }
 
-            //var distanceR = unitOfWork.GetRepoInstance<DistanceResult>().GetAllRecords();
-            //int countPhotos = distanceR.Count();
+            //Add Employee if not exist. The email is unique
+            if (employee == null)
+            {
+                employee = new Employee { name = name, middleName = middleName, lastName = lastName, email = email };
+                employeeRepo.Add(employee);
+                unitOfWork.SaveChanges();
+            }
             
-            //imagesDB = new Image<Bgr, Byte>[countPhotos]; 
-            //labels = new int[countPhotos];
-            //employeeId = new int[countPhotos]; //Aca tengo que crear un dieccionario para que por id me de el nombe y apellido de la persona. Lo tengo q cambiar en la variable de arriba
+            //I save the image with a guid as a name
+            GenericRepository<DistanceResult> distanceResultRepo = unitOfWork.GetRepoInstance<DistanceResult>();
+            Guid guid = Guid.NewGuid();           
 
+            var inputImage = new Image<Bgr, Byte>(new Bitmap(newImage));
+            Rectangle[] rectangleFace = detection(inputImage, pathXMLHaarcascade);
             
-            
+            //The function detection(..) can extract N faces
+            if (rectangleFace.Length == 1)
+            {
+                Image<Gray, byte> grayFrame = toGrayEqualizeFrame(inputImage);
+                Bitmap extractedFace;
+                extractedFace = formatRectangleFaces(grayFrame.ToBitmap(), rectangleFace[0]);
+               
+                extractedFace.Save(pathImg + @"\" + guid.ToString(), ImageFormat.Jpeg);
+
+                Image<Gray, byte> faceEMGUCV = new Image<Gray, byte>(extractedFace);
+
+                FaceRecognizer faceRecognition = new EigenFaceRecognizer(numComponentsEigen, thresholdEigen);
+
+                double distance = 2;
+
+                //Save register
+                DistanceResult dist = new DistanceResult();
+                dist.algorithm = RecognizeBLL.FaceRecognizerMethode.EigenFaceRecognizerMethode.ToString();
+                dist.employeeId = employee.employeeId;
+                dist.photoName = guid.ToString(); 
+                dist.distance = distance;
+                distanceResultRepo.Add(dist);
+
+                unitOfWork.SaveChanges();
+
+                int lengthArrays = distanceResultRepo.GetAllRecords().Count();
+                imagesDB = new Image<Bgr, Byte>[lengthArrays];
+                labels = new int[lengthArrays];
+                int i = 0;
+                foreach (DistanceResult di in distanceResultRepo.GetAllRecords())
+                {
+                    //This is to recalculate the faceRecognition and save it, but I think is not necesari declare imageDB and labels as global                    
+                    imagesDB[i] = new Image<Bgr, Byte>(pathImg + @"\" + di.photoName);
+                    labels[i] = di.distanceResultId;
+                    i++;
+                }
+
+                faceRecognition.Train(imagesDB,labels);
+                faceRecognition.Save(pathImg + @"\" + "TrainingSet");
+            }
+            return "";
         }
 
         public string recognizeFaces(Image newImage, string pathXMLHaarcascade, FaceRecognizerMethode faceRecognizerMethode)
         {
-      
-            
-
-
             var inputImage = new Image<Bgr, Byte>(new Bitmap(newImage));
-
             Rectangle[] rectangleFace = detection(inputImage, this.pathXMLHaarcascade);
 
             if (rectangleFace.Length == 1)
@@ -226,8 +168,8 @@ namespace FaceRecognition.Business_Logic
                         break;
                     default: return null;
                 };
-
-                faceRecognition.Load(pathImages + @"\" + "TrainingSet");
+            
+                faceRecognition.Load(pathImg + @"\" + "TrainingSet");
 
                         //Aca tengo que calcular la distancia
                 Image<Gray, byte> faceEMGUCV = new Image<Gray, byte>(extractedFace);
@@ -244,67 +186,10 @@ namespace FaceRecognition.Business_Logic
                     Employee em = emplyeeRepo.GetFirstOrDefault(di.employeeId);
                     return em.name + " " + em.middleName + " " + em.lastName;
                 }
-
                 return "Not Found";
-
             }
-
             return "Face no Detected or Multiple Faces Detected";
-
         }
-
-
-
-        
-        //el resturn lo cambie de Int32 a 64
-        //public Int64[] recognizeFaces(Image<Bgr, Byte> inputImage, string pathXMLHaarcascade, FaceRecognizerMethode faceRecognizerMethode)
-        //{
-
-        //    if(pathXMLHaarcascade!="")
-        //    {
-        //        this.pathXMLHaarcascade = pathXMLHaarcascade;
-        //    }
-
-        //    Bitmap[] extractedFace;
-        //    Rectangle[] rectangleFace = detection(inputImage, pathXMLHaarcascade);
-        //    Image<Gray, byte> grayFrame = toGrayEqualizeFrame(inputImage);
-        //    Int64[] outLabels = null; //Lo cambie de 32 a 64
-        //    FaceRecognizer faceRecognition;
-            
-        //    switch (faceRecognizerMethode.ToString())
-        //    {
-        //        case "EigenFaceRecognizerMethode": faceRecognition = new EigenFaceRecognizer(numComponentsEigen, thresholdEigen); //try catch aca
-        //            break;
-        //        case "FisherFaceRecognizerMethode": faceRecognition = new FisherFaceRecognizer(numComponentsFisher, thresholdFisher);
-        //            break;
-        //        case "LBPHFaceRecognizerMethode": faceRecognition = new LBPHFaceRecognizer(radiusLBPH, neighborsLBPH, gridXLBPH, gridYLBPH, thresholdLBPH);
-        //            break;
-        //        default: return null;
-        //    };
-
-        //    if (rectangleFace.Length > 0)
-        //    {
-        //        faceRecognition.Train(imagesDB, labels);
-        //        //faceRecognition.Save(FileName);Puedo guardar esto y depsues volver a cargarlo con Load. Deberia gurdarlo cada vez que se agrega una imagen a la DB
-                
-        //        extractedFace = new Bitmap[rectangleFace.Length];
-        //        outLabels = new Int64[labels.Length];
-        //        distances = new Double[rectangleFace.Length];
-
-        //        Parallel.For(0, rectangleFace.Length, i =>
-        //        {
-        //            extractedFace[i] = formatRectangleFaces(grayFrame.ToBitmap(), rectangleFace[i]);
-        //            Image<Gray, byte> faceEMGUCV = new Image<Gray, byte>(extractedFace[i]);
-
-        //            FaceRecognizer.PredictionResult ER = faceRecognition.Predict((IImage)faceEMGUCV);
-        //            outLabels[i] = ER.Label;
-        //            distances[i] = ER.Distance;
-        //        });
-        //    }
-
-        //    return outLabels;
-        //}
-
 
         private Bitmap formatRectangleFaces(Bitmap grayFrame, Rectangle rectangleFace)
         {
@@ -460,6 +345,17 @@ namespace FaceRecognition.Business_Logic
             
             return grayFrame;
         }
+
+        //Code to work with multiple images
+        //Parallel.For(0, rectangleFace.Length, i =>
+        //{
+        //     extractedFace[i] = formatRectangleFaces(grayFrame.ToBitmap(), rectangleFace[i]);
+        //     Image<Gray, byte> faceEMGUCV = new Image<Gray, byte>(extractedFace[i]);
+
+        //     FaceRecognizer.PredictionResult ER = faceRecognition.Predict((IImage)faceEMGUCV);
+        //     outLabels[i] = ER.Label;
+        //     distances[i] = ER.Distance;
+        // });
 
         public int WidthImage
         {

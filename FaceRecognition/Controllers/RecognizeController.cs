@@ -10,6 +10,9 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
 using System.Web.Hosting;
+using System.Net.Http.Headers;
+using System.Web;
+using System.Web.Script.Serialization;
 
 namespace FaceRecognition.Controllers
 {
@@ -37,12 +40,10 @@ namespace FaceRecognition.Controllers
 
         //}
 
-
-        //[ActionName("saveImage")]
         [HttpPost]
-        public string saveImage()
+        public HttpResponseMessage saveImageStream()
         {
-            var result = new HttpResponseMessage(HttpStatusCode.OK);
+            string resp = "";
             if (Request.Content.IsMimeMultipartContent())
             {
                 StreamContent content = (StreamContent)Request.Content;
@@ -58,10 +59,12 @@ namespace FaceRecognition.Controllers
             {
 
                 HttpContent requestContent = Request.Content;
+
+                //Begin bytes codification
                 Byte[] buffer = requestContent.ReadAsByteArrayAsync().Result;
 
                 int srcOffSet = 0;
-                long[] parameters = new long[4];
+                long[] parameters = new long[5];
                 System.Buffer.BlockCopy(buffer, srcOffSet, parameters, 0, parameters.Length * sizeof(long));
                 srcOffSet += parameters.Length * sizeof(long);
 
@@ -80,43 +83,82 @@ namespace FaceRecognition.Controllers
                 string lastName = new string(charLastName);
 
                 srcOffSet += (int)parameters[2] * sizeof(char);
-                byte[] byteImage = new byte[parameters[3]];
+                char[] charEmail = new char[parameters[3]];
+                System.Buffer.BlockCopy(buffer, srcOffSet, charEmail, 0, charEmail.Length * sizeof(char));
+                string email = new string(charEmail);
+
+                srcOffSet += (int)parameters[3] * sizeof(char);
+                byte[] byteImage = new byte[parameters[4]];
                 System.Buffer.BlockCopy(buffer, srcOffSet, byteImage, 0, byteImage.Length);
-                
-
-
-                //MemoryStream memoryStream = new MemoryStream(buffer);
-                //Image image = Image.FromStream(memoryStream);
-                //memoryStream.Dispose();
-                //image.Save("aaaydh");
+                //End byte codification
 
                 using (MemoryStream memoryStream = new MemoryStream(byteImage))
                 {
                     using (Image image = Image.FromStream(memoryStream))
-                    //Bitmap b = Bitmap.
                     {
-                        recognize.saveEmployee(image, name, middleName, lastName, "rojo@gmail");
-
-                        //image.Save(memoryStream,ImageFormat.Jpeg);
+                        resp = recognize.saveEmployee(image, name, middleName, lastName, email);                  
                     }
 
                 }
 
                 Request.CreateResponse();
             }
-            return "ok";
+
+            var result = new HttpResponseMessage(HttpStatusCode.OK);
+            result.Content = new StringContent(resp);
+            result.Content.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
+
+            return result;
+        }
+
+        public async Task<HttpResponseMessage> saveImage()
+        {
+
+            string resp = "";
+
+            // Check if the request contains multipart/form-data.
+            if (!Request.Content.IsMimeMultipartContent())
+            {
+                throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+            }
+
+            string root = HttpContext.Current.Server.MapPath("~/App_Data");
+            var provider = new MultipartFormDataStreamProvider(root);
+
+            // Read the form data.
+            await Request.Content.ReadAsMultipartAsync(provider);
+            var data = provider.FileData;
+            var content = provider.Contents;
+            string jsonParams = content[1].ReadAsStringAsync().Result;
+
+
+
+            Models.Employee employee = new JavaScriptSerializer().Deserialize<Models.Employee>(jsonParams);
+
+            Byte[] byteImage = content[0].ReadAsByteArrayAsync().Result;
+            using (MemoryStream memoryStream = new MemoryStream(byteImage))
+            {
+                using (Image image = Image.FromStream(memoryStream))
+                {
+                    resp = recognize.saveEmployee(image, employee.name, employee.middleName, employee.lastName, employee.email);
+                }
+
+            }
+
+            var result = new HttpResponseMessage(HttpStatusCode.OK);
+            result.Content = new StringContent(resp);
+            result.Content.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
+
+
+
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         [HttpPost]
-        public string RecognizeImage(/*[FromBody] Image img*/)
+        public HttpResponseMessage RecognizeImage(/*[FromBody] Image img*/)
         {
-            //MemoryStream ms = new MemoryStream(img);
-            //Image returnImage = Image.FromStream(ms);
+            string returnedString = "";
             
-            //img.Save("aaa", ImageFormat.Jpeg);
-
-            string returnedString;
-            var result = new HttpResponseMessage(HttpStatusCode.OK);
             if (Request.Content.IsMimeMultipartContent())
             {
                 StreamContent content = (StreamContent)Request.Content;
@@ -130,68 +172,26 @@ namespace FaceRecognition.Controllers
             }
             else
             {
-
                 HttpContent requestContent = Request.Content;
                 Byte[] buffer = requestContent.ReadAsByteArrayAsync().Result;
-
-                //MemoryStream memoryStream = new MemoryStream(buffer);
-                //Image image = Image.FromStream(memoryStream);
-                //memoryStream.Dispose();
-                //image.Save("aaaydh");
                 
                 using (MemoryStream memoryStream = new MemoryStream(buffer))
                 {
                     using (Image image = Image.FromStream(memoryStream))
                     //Bitmap b = Bitmap.
                     {
-                        returnedString = recognize.recognizeFaces(image, "", RecognizeBLL.FaceRecognizerMethode.EigenFaceRecognizerMethode);
-
-                        //image.Save(memoryStream,ImageFormat.Jpeg);
+                        returnedString = recognize.recognizeFaces(image, "", RecognizeBLL.FaceRecognizerMethode.EigenFaceRecognizerMethode);                
                     }
 
                 }
+            }        
+            var result = new HttpResponseMessage(HttpStatusCode.OK);
+            result.Content = new StringContent(returnedString);
+            result.Content.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
 
-                Request.CreateResponse();
-                //StreamContent content = (StreamContent)Request.Content;
-                //content.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("multipart/related; boundary=cbsms-main-boundary");
-
-
-
-                //Task<Stream> task = content.ReadAsStreamAsync();
-                //Stream readOnlyStream = task.Result;
-                //Byte[] buffer = new Byte[readOnlyStream.Length];
-                //readOnlyStream.Read(buffer, 0, buffer.Length);
-                //MemoryStream memoryStream = new MemoryStream(buffer);
-                //Image image = Image.FromStream(memoryStream);
-
-            }
-
-            //var result = new HttpResponseMessage(HttpStatusCode.OK);
-           // if (Request.Content.IsMimeMultipartContent())
-            //{
-                //Request.Content.ReadAsMultipartAsync<MultipartMemoryStreamProvider>(new MultipartMemoryStreamProvider()).ContinueWith((task) =>
-                //{
-                //    MultipartMemoryStreamProvider provider = task.Result;
-                //    foreach (HttpContent content in provider.Contents)
-                //    {
-                //        Stream stream = content.ReadAsStreamAsync().Result;
-                //        Image image = Image.FromStream(stream);
-                //        var testName = content.Headers.ContentDisposition.Name;
-                //        String filePath = HostingEnvironment.MapPath("~/Images/");
-                //        String[] headerValues = (String[])Request.Headers.GetValues("UniqueId");
-                //        String fileName = headerValues[0] + ".jpg";
-                //        String fullPath = Path.Combine(filePath, fileName);
-                //        image.Save(fullPath);
-                //    }
-                //});
-               
-           // }
-
-            ////recognize.recognizeFaces(img,"", "",RecognizeBLL.FaceRecognizerMethode.EigenFaceRecognizerMethode);
-            //recognize.saveEmployee(returnImage, "Juan", "Ignacio", "Fer", "juanignaaaa");
-
-            return "ok";
+            return result;
         }
+
         // PUT api/<controller>/5
         public void Put(int id, [FromBody]string value)
         {
