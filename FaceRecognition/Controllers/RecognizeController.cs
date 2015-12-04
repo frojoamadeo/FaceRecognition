@@ -96,7 +96,7 @@ namespace FaceRecognition.Controllers
                 {
                     using (Image image = Image.FromStream(memoryStream))
                     {
-                        resp = recognize.saveEmployee(image, name, middleName, lastName, email);                  
+                        resp = recognize.saveEmployee(image, name, middleName, lastName, email, RecognizeBLL.FaceRecognizerMethode.EigenFaceRecognizerMethode);                  
                     }
 
                 }
@@ -136,11 +136,12 @@ namespace FaceRecognition.Controllers
             Models.Employee employee = new JavaScriptSerializer().Deserialize<Models.Employee>(jsonParams);
 
             Byte[] byteImage = content[0].ReadAsByteArrayAsync().Result;
+
             using (MemoryStream memoryStream = new MemoryStream(byteImage))
             {
                 using (Image image = Image.FromStream(memoryStream))
                 {
-                    resp = recognize.saveEmployee(image, employee.name, employee.middleName, employee.lastName, employee.email);
+                    resp = recognize.saveEmployee(image, employee.name, employee.middleName, employee.lastName, employee.email, RecognizeBLL.FaceRecognizerMethode.EigenFaceRecognizerMethode);
                 }
 
             }
