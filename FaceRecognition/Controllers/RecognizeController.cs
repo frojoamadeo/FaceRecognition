@@ -13,6 +13,8 @@ using System.Web.Hosting;
 using System.Net.Http.Headers;
 using System.Web;
 using System.Web.Script.Serialization;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace FaceRecognition.Controllers
 {
@@ -158,7 +160,7 @@ namespace FaceRecognition.Controllers
         [HttpPost]
         public HttpResponseMessage RecognizeImage(/*[FromBody] Image img*/)
         {
-            string returnedString = "";
+            Business_Logic.RecognizeBLL.EmployeeStructure returnedData = new RecognizeBLL.EmployeeStructure();
             
             if (Request.Content.IsMimeMultipartContent())
             {
@@ -181,14 +183,24 @@ namespace FaceRecognition.Controllers
                     using (Image image = Image.FromStream(memoryStream))
                     //Bitmap b = Bitmap.
                     {
-                        returnedString = recognize.recognizeFaces(image, "", RecognizeBLL.FaceRecognizerMethode.EigenFaceRecognizerMethode);                
+                        returnedData = recognize.recognizeFaces(image, RecognizeBLL.FaceRecognizerMethode.EigenFaceRecognizerMethode);                
                     }
 
                 }
-            }        
+            }
+
             var result = new HttpResponseMessage(HttpStatusCode.OK);
-            result.Content = new StringContent(returnedString);
-            result.Content.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
+            var json = JsonConvert.SerializeObject(returnedData);
+
+            var jsonParams = new StringContent(json, Encoding.UTF8, "application/json");
+            result.Content = jsonParams;
+
+
+
+            //var jsonParams = new StringContent(json, Encoding.UTF8, "application/json");
+            
+            //result.Content = new StringContent(jsonParams.ToString());
+            result.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
             return result;
         }

@@ -17,6 +17,7 @@ using System.IO;
 using System.Drawing.Imaging;
 using System.Web;
 using Newtonsoft.Json;
+using System.Web.Script.Serialization;
 
 namespace Camera
 {
@@ -116,6 +117,8 @@ namespace Camera
 
             ImageConverter converter = new ImageConverter();
             byte[] imageInBytes = (byte[])converter.ConvertTo(im, typeof(byte[]));
+
+            //Esto despues sacar
             request.Timeout = 10000000;
             request.Method = "POST";
             request.ContentType = "application/x-www-form-urlencoded";
@@ -129,7 +132,12 @@ namespace Camera
             var response = (HttpWebResponse)request.GetResponse();
             
             var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
-            label1.Text = responseString;
+            
+            EmployeeStructure employee = new JavaScriptSerializer().Deserialize<EmployeeStructure>(responseString);
+
+            if (employee.result == "Recognized")
+                label1.Text = employee.name + " " + employee.lastName;
+            else label1.Text = employee.result;
             frame = null;
         }
 
@@ -241,6 +249,25 @@ namespace Camera
                     var result = client.PostAsync("/api/recognize/saveImage", content).Result;
                 }
             }
-        }      
+        }
+
+        public struct EmployeeStructure
+        {
+            public string name, middleName, lastName, email, result;
+            int coorX, coorY, width, height;
+
+            public EmployeeStructure(string result, string name, string middleName, string lastName, string email, int coorX, int coorY, int width, int height)
+            {
+                this.name = name;
+                this.middleName = middleName;
+                this.lastName = lastName;
+                this.email = email;
+                this.coorX = coorX;
+                this.coorY = coorY;
+                this.width = width;
+                this.height = height;
+                this.result = result;
+            }
+        }
     }
 }

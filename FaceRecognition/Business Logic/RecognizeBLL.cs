@@ -12,6 +12,7 @@ using Emgu.CV.Face;
 using FaceRecognition.Models;
 using FaceRecognition.DAL;
 using System.Diagnostics;
+using System.Web.Script.Serialization;
 
 namespace FaceRecognition.Business_Logic
 {
@@ -57,6 +58,8 @@ namespace FaceRecognition.Business_Logic
         private string imagesFolder = "Images";
         private string HaarCascadeFolder = "HaarCascade";
         private string HaarCascadeFile = "haarcascade_frontalface_default.XML";
+
+        public enum Result { Recognized, Unknown, NoDetected, MultipleFacesDetected };
 
         public RecognizeBLL()
         {
@@ -159,15 +162,26 @@ namespace FaceRecognition.Business_Logic
             return "";
         }
 
-        public string recognizeFaces(Image newImage, string pathXMLHaarcascade, FaceRecognizerMethode faceRecognizerMethode)
+        public EmployeeStructure recognizeFaces(Image newImage, FaceRecognizerMethode faceRecognizerMethode)
         {
             var inputImage = new Image<Bgr, Byte>(new Bitmap(newImage));
             Rectangle[] rectangleFace = detection(inputImage, this.pathXMLHaarcascade);
+            EmployeeStructure employeeStructure = new EmployeeStructure();
 
-            if (rectangleFace.Length == 1)
-            {               
+            if (rectangleFace.Length <= 0)
+            { 
+                employeeStructure.result = Result.NoDetected.ToString();
+                return employeeStructure;
+            }
+            else if (rectangleFace.Length > 1)
+            {
+                employeeStructure.result = Result.MultipleFacesDetected.ToString();
+                return employeeStructure;
+            }
+            else
+            {
                 Image<Gray, byte> grayFrame = toGrayEqualizeFrame(inputImage);
-                Image<Gray, Byte> faceEMGUCV = formatRectangleFaces(grayFrame.ToBitmap(), rectangleFace[0]);                
+                Image<Gray, Byte> faceEMGUCV = formatRectangleFaces(grayFrame.ToBitmap(), rectangleFace[0]);
 
                 //estimateParametersEigen(faceEMGUCV);
 
@@ -181,13 +195,15 @@ namespace FaceRecognition.Business_Logic
                         break;
                     case "LBPHFaceRecognizerMethode": faceRecognition = new LBPHFaceRecognizer(radiusLBPH, neighborsLBPH, gridXLBPH, gridYLBPH, thresholdLBPH);
                         break;
-                    default: return null;
+                    default: faceRecognition = new EigenFaceRecognizer(numComponentsEigen, thresholdEigen);
+                        break;
                 };
-            
+
                 faceRecognition.Load(pathImg + @"\" + "TrainingSet");
-                               
+
 
                 FaceRecognizer.PredictionResult ER = faceRecognition.Predict(faceEMGUCV);
+
 
                 if (ER.Label != -1 /*&& ER.Distance > thresholdEigen*/)
                 {
@@ -195,11 +211,14 @@ namespace FaceRecognition.Business_Logic
 
                     GenericRepository<Employee> emplyeeRepo = unitOfWork.GetRepoInstance<Employee>();
                     Employee em = emplyeeRepo.GetFirstOrDefault(label);
-                    return em.name + " " + em.middleName + " " + em.lastName;
+
+                    employeeStructure = new EmployeeStructure(Result.Recognized.ToString(), em.name, em.middleName, em.lastName, em.email, rectangleFace[0].X, rectangleFace[0].Y, rectangleFace[0].Width, rectangleFace[0].Height);
+
+                    return employeeStructure;
                 }
-                return "Not Found";
+                employeeStructure.result = Result.Unknown.ToString();
+                return employeeStructure;
             }
-            return "Face no Detected or Multiple Faces Detected";
         }
 
         private Image<Gray, Byte> formatRectangleFaces(Bitmap grayFrame, Rectangle rectangleFace)
@@ -399,6 +418,25 @@ namespace FaceRecognition.Business_Logic
         //     outLabels[i] = ER.Label;
         //     distances[i] = ER.Distance;
         // });
+
+        public struct EmployeeStructure
+        {
+            public string name, middleName, lastName, email, result;
+            int coorX, coorY, width, height;
+
+            public EmployeeStructure(string result, string name, string middleName, string lastName, string email, int coorX, int coorY, int width, int height)
+            {
+                this.name = name;
+                this.middleName = middleName;
+                this.lastName = lastName;
+                this.email = email;
+                this.coorX = coorX;
+                this.coorY = coorY;
+                this.width = width;
+                this.height = height;
+                this.result = result;
+            }
+        }
 
         public int WidthImage
         {
