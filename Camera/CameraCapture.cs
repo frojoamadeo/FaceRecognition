@@ -247,6 +247,10 @@ namespace Camera
                     //content.Add(new (parameters, new JsonMediaTypeFormatter()), "parameters");
 
                     var result = client.PostAsync("/api/recognize/saveImage", content).Result;
+
+                    var stringResult = result.Content.ReadAsStringAsync().Result;
+
+                    label6.Text = stringResult;
                 }
             }
         }
@@ -268,6 +272,50 @@ namespace Camera
                 this.height = height;
                 this.result = result;
             }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            var request = (HttpWebRequest)WebRequest.Create("http://localhost:60507/api/recognize/RecognizeMultipleImage");
+
+
+            ((HttpWebRequest)request).UserAgent = ".NET Framework FaceRecognition";
+
+            Mat frame = capture.QueryFrame();
+            Bitmap b = frame.Bitmap;
+
+            Image im = b;
+
+            ImageConverter converter = new ImageConverter();
+            byte[] imageInBytes = (byte[])converter.ConvertTo(im, typeof(byte[]));
+
+            //Esto despues sacar
+            request.Timeout = 10000000;
+            request.Method = "POST";
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.ContentLength = imageInBytes.Length;
+
+            using (var stream = request.GetRequestStream())
+            {
+                stream.Write(imageInBytes, 0, imageInBytes.Length);
+            }
+
+            var response = (HttpWebResponse)request.GetResponse();
+
+            var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
+
+            List<EmployeeStructure> employees = new List<EmployeeStructure>();
+
+            employees = new JavaScriptSerializer().Deserialize<List<EmployeeStructure>>(responseString);
+
+            foreach (EmployeeStructure em in employees)
+            {
+                if (em.result == "Recognized")
+                    label1.Text += em.name + " " + em.lastName;
+                else label1.Text = em.result;
+            }
+            
+            frame = null;
         }
     }
 }

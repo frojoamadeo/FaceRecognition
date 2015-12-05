@@ -59,7 +59,7 @@ namespace FaceRecognition.Business_Logic
         private string HaarCascadeFolder = "HaarCascade";
         private string HaarCascadeFile = "haarcascade_frontalface_default.XML";
 
-        public enum Result { Recognized, Unknown, NoDetected, MultipleFacesDetected };
+        public enum Result { Recognized, Unknown, NoDetected, MultipleFacesDetected, Saved, Error };
 
         public RecognizeBLL()
         {
@@ -105,7 +105,15 @@ namespace FaceRecognition.Business_Logic
             Rectangle[] rectangleFace = detection(inputImage, pathXMLHaarcascade);
             
             //The function detection(..) can extract N faces
-            if (rectangleFace.Length == 1)
+            if (rectangleFace.Length <= 0)
+            {
+                return Result.NoDetected.ToString();
+            }
+            else if (rectangleFace.Length > 1)
+            {
+                return Result.MultipleFacesDetected.ToString();
+            }
+            else
             {
                 Image<Gray, byte> grayFrame = toGrayEqualizeFrame(inputImage);
                 
@@ -158,8 +166,67 @@ namespace FaceRecognition.Business_Logic
                     faceRecognition.Train(imagesDB, labels);
                     faceRecognition.Save(pathImg + @"\" + "TrainingSet");
                 }
+                return Result.Saved.ToString();
             }
-            return "";
+            //return Result.Error.ToString();
+        }
+
+        public EmployeeStructure[] recognizeMultipleFaces(Image newImage, FaceRecognizerMethode faceRecognizerMethode)
+        {
+            var inputImage = new Image<Bgr, Byte>(new Bitmap(newImage));
+            Rectangle[] rectangleFace = detection(inputImage, this.pathXMLHaarcascade);
+            EmployeeStructure[] employeeStructure;            
+
+            if (rectangleFace.Length <= 0)
+            {
+                employeeStructure = new EmployeeStructure[0];
+                employeeStructure[0].result = Result.NoDetected.ToString();
+                return employeeStructure;
+            }
+            else
+            {
+
+                Image<Gray, byte> grayFrame = toGrayEqualizeFrame(inputImage);              
+                employeeStructure = new EmployeeStructure[rectangleFace.Length];
+
+                FaceRecognizer faceRecognition;
+                
+
+                switch (faceRecognizerMethode.ToString())
+                {
+                    case "EigenFaceRecognizerMethode": faceRecognition = new EigenFaceRecognizer(numComponentsEigen, thresholdEigen); //try catch aca
+                        break;
+                    case "FisherFaceRecognizerMethode": faceRecognition = new FisherFaceRecognizer(numComponentsFisher, thresholdFisher);
+                        break;
+                    case "LBPHFaceRecognizerMethode": faceRecognition = new LBPHFaceRecognizer(radiusLBPH, neighborsLBPH, gridXLBPH, gridYLBPH, thresholdLBPH);
+                        break;
+                    default: faceRecognition = new EigenFaceRecognizer(numComponentsEigen, thresholdEigen);
+                        break;
+                };
+
+                faceRecognition.Load(pathImg + @"\" + "TrainingSet");
+
+                Parallel.For(0, rectangleFace.Length, i =>
+                {
+                    Image<Gray, byte> faceEMGUCV = formatRectangleFaces(grayFrame.ToBitmap(), rectangleFace[i]);
+                                
+                    FaceRecognizer.PredictionResult ER = faceRecognition.Predict(faceEMGUCV);
+
+                    if (ER.Label != -1 /*&& ER.Distance > thresholdEigen*/)
+                    {
+                        int label = ER.Label;
+
+                        GenericRepository<Employee> emplyeeRepo = unitOfWork.GetRepoInstance<Employee>();
+                        Employee em = emplyeeRepo.GetFirstOrDefault(label);
+
+                        employeeStructure[i] = new EmployeeStructure(Result.Recognized.ToString(), em.name, em.middleName, em.lastName, em.email, rectangleFace[0].X, rectangleFace[0].Y, rectangleFace[0].Width, rectangleFace[0].Height);
+                    }
+                    employeeStructure[i].result = Result.Unknown.ToString();
+
+                });
+
+                return employeeStructure;
+            }
         }
 
         public EmployeeStructure recognizeFaces(Image newImage, FaceRecognizerMethode faceRecognizerMethode)

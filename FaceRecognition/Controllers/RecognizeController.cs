@@ -154,7 +154,7 @@ namespace FaceRecognition.Controllers
 
 
 
-            return Request.CreateResponse(HttpStatusCode.OK);
+            return result;
         }
 
         [HttpPost]
@@ -189,17 +189,58 @@ namespace FaceRecognition.Controllers
                 }
             }
 
+
             var result = new HttpResponseMessage(HttpStatusCode.OK);
             var json = JsonConvert.SerializeObject(returnedData);
 
             var jsonParams = new StringContent(json, Encoding.UTF8, "application/json");
             result.Content = jsonParams;
 
+            result.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
+            return result;
+        }
 
-            //var jsonParams = new StringContent(json, Encoding.UTF8, "application/json");
+        [HttpPost]
+        public HttpResponseMessage RecognizeMultipleImage(/*[FromBody] Image img*/)
+        {
             
-            //result.Content = new StringContent(jsonParams.ToString());
+            List<Business_Logic.RecognizeBLL.EmployeeStructure> returnedData = new List<Business_Logic.RecognizeBLL.EmployeeStructure>();
+
+            if (Request.Content.IsMimeMultipartContent())
+            {
+                StreamContent content = (StreamContent)Request.Content;
+                Task<Stream> task = content.ReadAsStreamAsync();
+                Stream readOnlyStream = task.Result;
+                Byte[] buffer = new Byte[readOnlyStream.Length];
+                readOnlyStream.Read(buffer, 0, buffer.Length);
+                MemoryStream memoryStream = new MemoryStream(buffer);
+                Image image = Image.FromStream(memoryStream);
+
+            }
+            else
+            {
+                HttpContent requestContent = Request.Content;
+                Byte[] buffer = requestContent.ReadAsByteArrayAsync().Result;
+
+                using (MemoryStream memoryStream = new MemoryStream(buffer))
+                {
+                    using (Image image = Image.FromStream(memoryStream))
+                    //Bitmap b = Bitmap.
+                    {
+                        returnedData = recognize.recognizeMultipleFaces(image, RecognizeBLL.FaceRecognizerMethode.EigenFaceRecognizerMethode).ToList<Business_Logic.RecognizeBLL.EmployeeStructure>();
+                    }
+
+                }
+            }
+
+
+            var result = new HttpResponseMessage(HttpStatusCode.OK);
+            var json = JsonConvert.SerializeObject(returnedData);
+
+            var jsonParams = new StringContent(json, Encoding.UTF8, "application/json");
+            result.Content = jsonParams;
+
             result.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
             return result;
