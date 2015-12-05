@@ -369,8 +369,9 @@ namespace FaceRecognition.Business_Logic
             }
         }
 
+        //0: Default, 1:to Accuracy 2: Middium, 3: Imprecise, 4:Ambiguous
         //public void estimateParametersEigen(IImage[] imagesInput, IImage[] imagesDB, int[] labels)
-        public void estimateParametersEigen(Image<Gray, Byte> imagesInput)
+        public void estimateParametersEigen(Image<Gray, Byte> imagesInput, int accuracy)
         {
             int tmpNumComponentsEigen;
             double tmpThresholdEigen;
@@ -407,13 +408,38 @@ namespace FaceRecognition.Business_Logic
                     //faceRecognition.Load(pathImg + @"\" + "TrainingSet");
                     FaceRecognizer.PredictionResult ER = faceRecognition.Predict(imagesInput);
 
-                    if (tmpThresholdEigen == 2500)
-                    {
-                        int a = 2;
-                    }
+                    
                     if (ER.Label != -1)
                     {
-                        countRecognitionFaces++;
+                        if (accuracy == 1)
+                        {
+                            numComponentsEigen = EficientNumComponentsEigen;
+                            thresholdEigen = EficientThresholdEigen;
+                            return;
+                        }
+                        else if (accuracy == 2)
+                        {
+                            numComponentsEigen = EficientNumComponentsEigen;
+                            thresholdEigen = EficientThresholdEigen + 300;
+                            return;
+                        }
+                        else if (accuracy == 3)
+                        {
+                            numComponentsEigen = EficientNumComponentsEigen;
+                            thresholdEigen = EficientThresholdEigen + 600;
+                            return;
+                        }
+                        else if (accuracy == 4)
+                        {
+                            numComponentsEigen = EficientNumComponentsEigen;
+                            thresholdEigen = EficientThresholdEigen + 900;
+                            return;
+                        }
+                        else if (accuracy > 4)
+                        {
+                            thresholdEigen = Double.PositiveInfinity;
+                        }
+                        else return;
                     }
                     faceRecognition.Dispose();
                     //if (countRecognitionFaces > countRecognitionFacesMax)
@@ -425,8 +451,7 @@ namespace FaceRecognition.Business_Logic
                 }
             }
 
-            numComponentsEigen = EficientNumComponentsEigen;
-            thresholdEigen = EficientThresholdEigen;
+            
         }
 
         //public void estimateParametersFisher(IImage[] imagesInput, IImage[] imagesDB, int[] labels)
