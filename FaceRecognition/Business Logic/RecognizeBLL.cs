@@ -370,15 +370,10 @@ namespace FaceRecognition.Business_Logic
         }
 
         //0: Default, 1:to Accuracy 2: Middium, 3: Imprecise, 4:Ambiguous
-        //public void estimateParametersEigen(IImage[] imagesInput, IImage[] imagesDB, int[] labels)
         public void estimateParametersEigen(Image<Gray, Byte> imagesInput, int accuracy)
         {
             int tmpNumComponentsEigen;
             double tmpThresholdEigen;
-            int EficientNumComponentsEigen = 80;
-            double EficientThresholdEigen = 2000;
-            int countRecognitionFaces = 0;
-            int countRecognitionFacesMax = 0;
             FaceRecognizer faceRecognition;
 
             for (tmpThresholdEigen = 1000; tmpThresholdEigen < 10000; tmpThresholdEigen+=100)
@@ -401,38 +396,35 @@ namespace FaceRecognition.Business_Logic
                         i++;
                     }
 
-
                     faceRecognition.Train(imagesDB, labels);
-
 
                     //faceRecognition.Load(pathImg + @"\" + "TrainingSet");
                     FaceRecognizer.PredictionResult ER = faceRecognition.Predict(imagesInput);
-
                     
                     if (ER.Label != -1)
                     {
                         if (accuracy == 1)
                         {
-                            numComponentsEigen = EficientNumComponentsEigen;
-                            thresholdEigen = EficientThresholdEigen;
+                            numComponentsEigen = tmpNumComponentsEigen;
+                            thresholdEigen = tmpThresholdEigen;
                             return;
                         }
                         else if (accuracy == 2)
                         {
-                            numComponentsEigen = EficientNumComponentsEigen;
-                            thresholdEigen = EficientThresholdEigen + 300;
+                            numComponentsEigen = tmpNumComponentsEigen;
+                            thresholdEigen = tmpThresholdEigen + 300;
                             return;
                         }
                         else if (accuracy == 3)
                         {
-                            numComponentsEigen = EficientNumComponentsEigen;
-                            thresholdEigen = EficientThresholdEigen + 600;
+                            numComponentsEigen = tmpNumComponentsEigen;
+                            thresholdEigen = tmpThresholdEigen + 600;
                             return;
                         }
                         else if (accuracy == 4)
                         {
-                            numComponentsEigen = EficientNumComponentsEigen;
-                            thresholdEigen = EficientThresholdEigen + 900;
+                            numComponentsEigen = tmpNumComponentsEigen;
+                            thresholdEigen = tmpThresholdEigen + 900;
                             return;
                         }
                         else if (accuracy > 4)
@@ -442,54 +434,79 @@ namespace FaceRecognition.Business_Logic
                         else return;
                     }
                     faceRecognition.Dispose();
-                    //if (countRecognitionFaces > countRecognitionFacesMax)
-                    //{
-                    //    EficientNumComponentsEigen = tmpNumComponentsEigen;
-                    //    EficientThresholdEigen = tmpThresholdEigen;
-                    //}
-                    //countRecognitionFaces = 0;
                 }
-            }
-
-            
+            }        
         }
 
-        //public void estimateParametersFisher(IImage[] imagesInput, IImage[] imagesDB, int[] labels)
-        public void estimateParametersFisher(Image<Bgr, Byte>[] imagesInput, Image<Bgr, Byte>[] imagesDB, int[] labels)
+
+        //0: Default, 1:to Accuracy 2: Middium, 3: Imprecise, 4:Ambiguous
+        //tmpNumComponentsFisher. If you leave this at the default (0), set it to a value less than 0, or greater than the number of your training inputs, it will be set to the correct number (your training inputs - 1) automatically 
+        public void estimateParametersFisher(Image<Gray, Byte> imagesInput, int accuracy)
         {
             int tmpNumComponentsFisher;
             double tmpThresholdFisher;
-            int EficientNumComponentsFisher = 80;
-            double EficientThresholdFisher = 2000;
-            int countRecognitionFaces = 0;
-            int countRecognitionFacesMax = 0;
             FaceRecognizer faceRecognition;
 
-            for (tmpThresholdFisher = 0; tmpThresholdFisher < 3000; tmpThresholdFisher++)
+            for (tmpThresholdFisher = 1000; tmpThresholdFisher < 10000; tmpThresholdFisher += 100)
             {
-                for (tmpNumComponentsFisher = 0; tmpNumComponentsFisher < 100; tmpNumComponentsFisher++)
+                for (tmpNumComponentsFisher = 50; tmpNumComponentsFisher < 100; tmpNumComponentsFisher += 10)
                 {
-                    foreach (Image<Bgr, Byte> input in imagesInput)
+                    faceRecognition = new EigenFaceRecognizer(tmpNumComponentsFisher, tmpThresholdFisher);
+                    GenericRepository<DistanceResult> distanceResultRepo = unitOfWork.GetRepoInstance<DistanceResult>();
+
+                    int lengthArrays = distanceResultRepo.GetAllRecords().Count();
+                    imagesDB = new Image<Gray, Byte>[lengthArrays];
+                    labels = new int[lengthArrays];
+
+                    int i = 0;
+                    foreach (DistanceResult di in distanceResultRepo.GetAllRecords())
                     {
-                        faceRecognition = new EigenFaceRecognizer(tmpNumComponentsFisher, tmpThresholdFisher);
-                        faceRecognition.Train(imagesDB, labels);
-                        FaceRecognizer.PredictionResult ER = faceRecognition.Predict(input);
-                        if (ER.Label != -1)
+                        //This is to recalculate the faceRecognition and save it, but I think is not necesari declare imageDB and labels as global                    
+                        imagesDB[i] = new Image<Gray, Byte>(pathImg + @"\" + di.photoName + ".Jpeg");
+                        labels[i] = di.employeeId;
+                        i++;
+                    }
+
+                    faceRecognition.Train(imagesDB, labels);
+
+                    //faceRecognition.Load(pathImg + @"\" + "TrainingSet");
+                    FaceRecognizer.PredictionResult ER = faceRecognition.Predict(imagesInput);
+
+                    if (ER.Label != -1)
+                    {
+                        if (accuracy == 1)
                         {
-                            countRecognitionFaces++;
+                            numComponentsEigen = tmpNumComponentsFisher;
+                            thresholdEigen = tmpThresholdFisher;
+                            return;
                         }
+                        else if (accuracy == 2)
+                        {
+                            numComponentsEigen = tmpNumComponentsFisher;
+                            thresholdEigen = tmpThresholdFisher + 300;
+                            return;
+                        }
+                        else if (accuracy == 3)
+                        {
+                            numComponentsEigen = tmpNumComponentsFisher;
+                            thresholdEigen = tmpThresholdFisher + 600;
+                            return;
+                        }
+                        else if (accuracy == 4)
+                        {
+                            numComponentsEigen = tmpNumComponentsFisher;
+                            thresholdEigen = tmpThresholdFisher + 900;
+                            return;
+                        }
+                        else if (accuracy > 4)
+                        {
+                            thresholdEigen = Double.PositiveInfinity;
+                        }
+                        else return;
                     }
-                    if (countRecognitionFaces > countRecognitionFacesMax)
-                    {
-                        EficientNumComponentsFisher = tmpNumComponentsFisher;
-                        EficientThresholdFisher = tmpThresholdFisher;
-                    }
-                    countRecognitionFaces = 0;
+                    faceRecognition.Dispose();                   
                 }
             }
-
-            numComponentsFisher = EficientNumComponentsFisher;
-            thresholdFisher = EficientThresholdFisher;
         }
 
         private Image<Gray, byte> toGrayEqualizeFrame(Image<Bgr, Byte> inputImage)
