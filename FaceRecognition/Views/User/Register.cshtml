@@ -1,0 +1,61 @@
+﻿@model FaceRecognition.Models.Employee
+@{
+    ViewBag.Title = "Register";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+</head>
+<body>
+    @using (Html.BeginForm())
+    {
+        @Html.ValidationSummary(true, "Login failed. Check your login details.");
+        <div>
+            <fieldset>
+                <legend>Register</legend>
+                <div class="editor-label">
+                    Name
+                </div>
+                <div class="editor-field">
+                    @Html.TextBoxFor(u => u.name)
+                    @Html.ValidationMessageFor(u => u.name)
+                </div>
+                <div class="editor-label">
+                    Middle Name
+                </div>
+                <div class="editor-field">
+                    @Html.TextBoxFor(u => u.middleName)
+                    @Html.ValidationMessageFor(u => u.middleName)
+                </div>
+                <div class="editor-label">
+                    Last Name
+                </div>
+                <div class="editor-field">
+                    @Html.TextBoxFor(u => u.lastName)
+                    @Html.ValidationMessageFor(u => u.lastName)
+                </div>
+                <div class="editor-label">
+                    Email
+                </div>
+                <div class="editor-field">
+                    @Html.TextBoxFor(u => u.email)
+                    @Html.ValidationMessageFor(u => u.email)
+                </div>
+                <div class="editor-label">
+                    Password
+                </div>
+                <div class="editor-field">
+                    @Html.PasswordFor(u => u.password)
+                    @Html.ValidationMessageFor(u => u.password)
+                </div>               
+                <input type="submit" value="Log In" />
+            </fieldset>
+        </div>
+    }
+</body>
+</html>

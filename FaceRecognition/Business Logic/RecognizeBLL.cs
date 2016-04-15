@@ -57,7 +57,9 @@ namespace FaceRecognition.Business_Logic
 
         private string imagesFolder = "Images";
         private string HaarCascadeFolder = "HaarCascade";
-        private string HaarCascadeFile = "haarcascade_frontalface_default.XML";
+        //private string HaarCascadeFile = "haarcascade_frontalface_default.XML";
+        //Borrar
+        private string HaarCascadeFile = "haarcascade_cow.XML";
 
         public enum Result { Recognized, Unknown, NoDetected, MultipleFacesDetected, Saved, Error };
 
@@ -103,8 +105,10 @@ namespace FaceRecognition.Business_Logic
 
             var inputImage = new Image<Bgr, Byte>(new Bitmap(newImage));
             Rectangle[] rectangleFace = detection(inputImage, pathXMLHaarcascade);
-            
+
+                        
             //The function detection(..) can extract N faces
+
             if (rectangleFace.Length <= 0)
             {
                 return Result.NoDetected.ToString();
@@ -235,6 +239,18 @@ namespace FaceRecognition.Business_Logic
             Rectangle[] rectangleFace = detection(inputImage, this.pathXMLHaarcascade);
             EmployeeStructure employeeStructure = new EmployeeStructure();
 
+
+            ////BEGIN BORRAR
+            //Guid guid = Guid.NewGuid();
+            //Image<Bgr, byte> img = squaredFaces(inputImage, rectangleFace);
+
+            //img.Save(pathImg + @"\" + guid.ToString() + ".Jpeg");
+            
+            //employeeStructure.result = Result.NoDetected.ToString();
+            //return employeeStructure;
+            
+            ////END BORRAR
+
             if (rectangleFace.Length <= 0)
             { 
                 employeeStructure.result = Result.NoDetected.ToString();
@@ -326,20 +342,19 @@ namespace FaceRecognition.Business_Logic
             return rectangleFace;
         }
 
-        public Image<Bgr, byte> squaredFaces(Image<Bgr, Byte> inputImage, string pathXMLHaarcascade, Color rectangleColor)
+        public Image<Bgr, byte> squaredFaces(Image<Bgr, Byte> inputImage, Rectangle[] rectangleFace)
         {
             Point point;
             Rectangle rec;
-            this.rectangleColor = rectangleColor;
-
-            Rectangle[] rectangleFace = detection(inputImage, pathXMLHaarcascade);
+            this.rectangleColor = Color.Green;
+           
 
             if (rectangleFace.Length > 0)
             {
-                Parallel.ForEach(rectangleFace, actualFace =>
+                Parallel.ForEach(rectangleFace, actualRectangle =>
                 {
-                    point = new Point(actualFace.X, actualFace.Y);
-                    rec = new Rectangle(point, actualFace.Size);
+                    point = new Point(actualRectangle.X, actualRectangle.Y);
+                    rec = new Rectangle(point, actualRectangle.Size);
                     inputImage.Draw(rec, new Bgr(rectangleColor), 2);
                     //Console.WriteLine("Processing {0} on thread {1}", actualFace.Location,
                     //Thread.CurrentThread.ManagedThreadId);
